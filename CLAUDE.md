@@ -1,260 +1,106 @@
-# SAP BTP CAP JavaScript Project
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-This is a Node.js project built using the SAP Cloud Application Programming (CAP) model for SAP Business Technology Platform (BTP). CAP provides a framework for building enterprise-grade applications with built-in support for multitenancy, authentication, and integration with SAP services.
+This repository is set up for an SAP BTP CAP (Cloud Application Programming Model) JavaScript project. The project structure is not yet initialized - use `cds init` to create the project scaffold.
 
 ## Technology Stack
-- **Runtime**: Node.js
+- **Runtime**: Node.js (version 18+)
 - **Framework**: SAP CAP (Cloud Application Programming Model)
-- **Language**: JavaScript/TypeScript
+- **Language**: JavaScript
 - **Platform**: SAP Business Technology Platform (BTP)
-- **Database**: SAP HANA Cloud / SQLite (for local development)
+- **Database**: SAP HANA Cloud (production) / SQLite (local development)
 
-## Development Setup
+## Initial Setup
 
 ### Prerequisites
-- Node.js (version 18+ recommended)
-- npm or yarn
-- SAP CAP CLI: `npm install -g @sap/cds-dk`
-- Cloud Foundry CLI (for BTP deployment)
-
-### Local Development
+Install the SAP CDS CLI globally:
 ```bash
+npm install -g @sap/cds-dk
+```
+
+### Initialize Project
+```bash
+# Create new CAP project structure
+cds init
+
 # Install dependencies
 npm install
+```
 
-# Start local development server
-npm run start
-# or
-cds serve
+## Development Commands
 
-# Watch mode for development
-cds watch
+### Running the Application
+```bash
+cds watch          # Development mode with hot reload (recommended)
+cds serve          # Start server without watch
+npm start          # Production mode
 ```
 
 ### Database Management
 ```bash
-# Deploy database schema locally
-cds deploy --to sqlite
-
-# For SAP HANA
-cds deploy --to hana
+cds deploy --to sqlite      # Deploy schema to local SQLite
+cds deploy --to hana        # Deploy to SAP HANA
 ```
 
-## Project Structure
-```
-├── app/                    # UI applications (Fiori Elements, custom UIs)
-├── db/                     # Database artifacts (CDS models, data)
-├── srv/                    # Service implementations
-├── package.json           # Project configuration
-├── .cdsrc.json           # CAP configuration
-└── mta.yaml              # Multi-target application descriptor
+### Building and Deployment
+```bash
+cds build          # Build project
+mbt build          # Build MTA archive for BTP deployment
+cf deploy mta_archives/*.mtar    # Deploy to Cloud Foundry
 ```
 
-## CAP Best Practices
+### Debugging
+```bash
+DEBUG=* cds serve           # Enable all debug output
+DEBUG=serve,db cds serve    # Enable specific debug categories
+```
 
-### Core Development Principles
-- **Capture Intent**: Focus on "what" rather than "how" - model your domain intent clearly
-- **Minimize Boilerplate**: Leverage CAP's built-in features to reduce technical debt
-- **Grow as You Go**: Start simple and extend incrementally as requirements evolve
-- **Domain-Driven Design**: Model your business domain first, then implement services
+## CAP Project Structure
+Once initialized, the typical structure is:
+- `db/` - Database artifacts (CDS models, data)
+- `srv/` - Service implementations and business logic
+- `app/` - UI applications (Fiori Elements, custom UIs)
+- `package.json` - Project configuration
+- `.cdsrc.json` - CAP configuration
+
+## CAP Development Guidelines
 
 ### CDS Modeling
-- Use proper naming conventions (entities in PascalCase, properties in camelCase)
-- Focus on capturing domain intent in your models
-- Define associations and compositions correctly for data relationships
-- Use aspects for reusable model fragments and cross-cutting concerns
-- Implement proper data types, constraints, and validations
-- Model with performance considerations from the start
-- Use compositions for master-detail relationships
-- Define calculated fields and virtual elements where appropriate
+- Use PascalCase for entities, camelCase for properties
+- Define associations and compositions for relationships
+- Use aspects for reusable model fragments
+- Leverage built-in aspects: `cuid`, `managed`, `temporal`
 
 ### Service Implementation
-- Define clear service interfaces using CDS service definitions
-- Keep service logic in separate files under `srv/`
-- Use generic providers for standard CRUD operations
-- Implement custom logic with event handlers (before/after/on)
-- Add comprehensive input validation
-- Support actions and functions for complex business operations
-- Use CAP's built-in features (authentication, authorization, etc.)
-- Implement proper error handling with meaningful messages
-- Use transactions for data consistency
-- Leverage CAP's automatic OData protocol support
+- Keep service logic in `srv/` directory
+- Use event handlers: `srv.before()`, `srv.on()`, `srv.after()`
+- Leverage generic providers for CRUD operations
+- Implement custom actions/functions for complex operations
+- Use `SELECT`, `INSERT`, `UPDATE`, `DELETE` from `cds.ql` for database operations
 
 ### Security
-- Implement CDS-based authorization using `@requires` and `@restrict` annotations
-- Use platform security features (XSUAA, OAuth2)
-- Annotate and protect personal data with `@PersonalData` annotations
-- Enable automatic audit logging for compliance
-- Validate input data at service boundaries
-- Follow principle of least privilege
-- Implement role-based access control
-- Use secure coding practices for custom handlers
+- Apply `@requires` and `@restrict` annotations for authorization
+- Use `@PersonalData` annotations for GDPR compliance
+- Validate all input data at service boundaries
 
 ### Performance
-- Use projections to limit data transfer and improve query performance
-- Optimize database interactions with efficient CDS queries
-- Implement proper caching strategies where appropriate
-- Use streaming for large datasets
-- Consider database-specific optimizations for SAP HANA
-- Monitor and profile query performance
-- Use lazy loading for associations when appropriate
+- Use projections to limit data transfer
 - Implement pagination for large result sets
+- Use `SELECT.columns()` to fetch only needed fields
+- Consider database-specific optimizations for HANA
 
-### Extensibility & Multitenancy
-- Design services to support multitenancy from the start
-- Use CAP's built-in tenant isolation features
-- Implement extension points for customization
-- Support cloud-native deployment strategies
-- Enable horizontal scaling capabilities
-- Design for intrinsic resilience and fault tolerance
-
-## Git Workflow
-
-### Branch Strategy
-- `main` - production-ready code
-- `develop` - integration branch
-- `feature/*` - feature development
-- `hotfix/*` - production fixes
-
-### Commit Guidelines
+## Common CDS Commands
 ```bash
-# Format: type(scope): description
-feat(service): add customer registration endpoint
-fix(db): resolve duplicate key constraint issue
-docs(readme): update setup instructions
+cds                 # Show help and available commands
+cds version         # Show version info
+cds compile <file>  # Compile CDS models to see output
+cds env             # Show effective configuration
+cds lint            # Lint CDS models
 ```
 
-### Before Committing
-```bash
-# Run linting
-npm run lint
-
-# Run tests
-npm test
-
-# Build the project
-npm run build
-
-# Check for security vulnerabilities
-npm audit
-```
-
-## Testing
-
-### Unit Tests
-```bash
-# Run all tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Watch mode
-npm run test:watch
-```
-
-### Integration Tests
-```bash
-# Test with local database
-npm run test:integration
-
-# Test against HANA
-npm run test:hana
-```
-
-## Deployment
-
-### Local Deployment
-```bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-```
-
-### SAP BTP Deployment
-```bash
-# Build MTA archive
-mbt build
-
-# Deploy to Cloud Foundry
-cf deploy mta_archives/*.mtar
-```
-
-## Environment Configuration
-
-### Development (.env.local)
-```
-CDS_ENV=development
-DEBUG=*
-```
-
-### Production (BTP)
-- Configure service bindings
-- Set up destination services
-- Configure authentication (XSUAA)
-
-## Common Commands
-```bash
-# CAP Commands
-cds init                    # Initialize new CAP project
-cds serve                   # Start development server
-cds watch                   # Watch mode with auto-reload
-cds deploy                  # Deploy database schema
-cds build                   # Build for production
-cds compile                 # Compile CDS models
-
-# Development
-npm run start              # Start application
-npm run dev                # Development mode
-npm run test               # Run tests
-npm run lint               # Lint code
-npm run build              # Build for production
-
-# Database
-cds deploy --to sqlite     # Local SQLite database
-cds deploy --to hana       # SAP HANA deployment
-```
-
-## Troubleshooting
-
-### Common Issues
-1. **Port conflicts**: CAP default port is 4004
-2. **Database connection**: Check service bindings and credentials
-3. **Authentication**: Verify XSUAA configuration
-4. **Deployment**: Check MTA descriptor and service dependencies
-
-### Debug Mode
-```bash
-# Enable debug logging
-DEBUG=* cds serve
-
-# Specific debug categories
-DEBUG=serve,db cds serve
-```
-
-## Resources
-- [SAP CAP Documentation](https://cap.cloud.sap/)
-- [CAP Samples](https://github.com/SAP-samples/cloud-cap-samples)
-- [SAP BTP Documentation](https://help.sap.com/docs/btp)
-- [Fiori Elements](https://ui5.sap.com/fiori-elements)
-
-## Code Quality
-
-### Linting
-- Use ESLint with SAP-specific rules
-- Configure Prettier for code formatting
-- Set up pre-commit hooks
-
-### Type Safety
-- Consider migrating to TypeScript
-- Use JSDoc for type annotations
-- Implement proper input validation
-
-## Performance Monitoring
-- Use SAP Application Logging
-- Implement health checks
-- Monitor memory usage and response times
-- Set up alerts for critical thresholds
+## Port Configuration
+CAP default port is 4004. Configure via:
+- Environment variable: `PORT=8080 cds serve`
+- package.json: `"cds": { "server": { "port": 8080 } }`
